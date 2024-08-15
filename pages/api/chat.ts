@@ -19,6 +19,13 @@ export default async function handler(
       }
     : {};
 
+  console.log("API URL:", apiUrl);
+  console.log("Headers:", headers);
+  console.log("Request Body:", {
+    model: model,
+    messages: [{ role: "user", content: query }],
+  });
+
   try {
     const response = await axios.post(
       `${apiUrl}/chat/completions`,
@@ -29,16 +36,14 @@ export default async function handler(
       { headers }
     );
 
-    // Ensure that only the content is returned
+    console.log("API Response:", response.data);
+
     const botMessage = response.data.choices[0].message.content;
     res.status(200).json({ answer: botMessage });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error(
-        "API Error:",
-        (error as any).response?.data || error.message
-      );
-      res.status(500).json({ error: error.message });
+    if (axios.isAxiosError(error)) {
+      console.error("API Error Data:", error.response?.data);
+      res.status(500).json({ error: error.response?.data || error.message });
     } else {
       res.status(500).json({ error: "An unknown error occurred." });
     }
