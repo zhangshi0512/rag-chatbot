@@ -2,29 +2,6 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
-import { getEmbedding } from "../../utils/embedding";
-
-function cosineSimilarity(a: number[], b: number[]): number {
-  const dotProduct = a.reduce((sum, _, i) => sum + a[i] * b[i], 0);
-  const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
-  const magnitudeB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
-  return dotProduct / (magnitudeA * magnitudeB);
-}
-
-async function findRelevantContext(
-  query: string,
-  documents: string[]
-): Promise<string> {
-  const queryEmbedding = await getEmbedding(query); // Await the embedding
-  const documentEmbeddings = await Promise.all(
-    documents.map((doc) => getEmbedding(doc))
-  ); // Await all document embeddings
-  const similarities = documentEmbeddings.map((docEmb) =>
-    cosineSimilarity(queryEmbedding, docEmb)
-  );
-  const maxSimilarityIndex = similarities.indexOf(Math.max(...similarities));
-  return documents[maxSimilarityIndex];
-}
 
 export default async function handler(
   req: NextApiRequest,
@@ -49,34 +26,43 @@ export default async function handler(
       };
 
   try {
-    const relevantContext = await findRelevantContext(query, documents); // Await the context finding
-    const promptWithContext = `Context: ${relevantContext}\n\nQuestion: ${query}\n\nAnswer:`;
+    let payload;
 
-    const response = await axios.post(
-      `${apiUrl}/api/generate`,
-      {
-        model: useExternal ? model : localModel,
-        prompt: promptWithContext,
+    if (useExternal) {
+      // For external API, integrate documents into the conversation context
+      const context = documents.map((doc: string, index: number) => ({
+        role: "system",
+        content: `Document ${index + 1}: ${doc}`,
+      }));
+
+      payload = {
+        model,
+        messages: [...context, { role: "user", content: query }],
+      };
+    } else {
+      // Local API usage
+      payload = {
+        model: localModel,
+        messages: [{ role: "user", content: query }],
         stream: false,
-      },
-      { headers }
-    );
+      };
+    }
 
-    console.log("API Response:", response.data);
+    const response = await axios.post(`${apiUrl}/chat/completions`, payload, {
+      headers,
+    });
 
-    const botMessage = response.data.response;
+    const botMessage =
+      response.data.choices?.[0]?.message?.content || "No response from API";
     res.status(200).json({ answer: botMessage });
   } catch (error) {
     console.error("API Error:", error);
-
     if (error instanceof Error) {
       res.status(500).json({
         error: `An error occurred while processing your request: ${error.message}`,
       });
     } else {
-      res.status(500).json({
-        error: "An unknown error occurred while processing your request.",
-      });
+      res.status(500).json({ error: "An unknown error occurred." });
     }
   }
 }

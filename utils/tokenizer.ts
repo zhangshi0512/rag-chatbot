@@ -1,3 +1,5 @@
+// ../../utils/tokenizer.ts
+
 export class TokenizerService {
   tokenize(text: string): string[] {
     return text

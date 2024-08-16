@@ -42,7 +42,7 @@ export default function Home() {
     setChatHistory((prev) => [...prev, { user: message, bot: "..." }]);
 
     try {
-      const chatResponse = await fetch("/api/chat", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -55,11 +55,11 @@ export default function Home() {
         }),
       });
 
-      if (!chatResponse.ok) {
-        throw new Error(`HTTP error! status: ${chatResponse.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await chatResponse.json();
+      const data = await response.json();
 
       setChatHistory((prev) => [
         ...prev.slice(0, -1),
@@ -70,8 +70,6 @@ export default function Home() {
       ]);
     } catch (error) {
       console.error("Error submitting chat:", error);
-
-      // Type narrowing for `error`
       if (error instanceof Error) {
         setChatHistory((prev) => [
           ...prev.slice(0, -1),
@@ -80,7 +78,7 @@ export default function Home() {
       } else {
         setChatHistory((prev) => [
           ...prev.slice(0, -1),
-          { user: message, bot: "An unknown error occurred." },
+          { user: message, bot: `Error: An unknown error occurred.` },
         ]);
       }
     }
@@ -132,11 +130,11 @@ export default function Home() {
                 onChange={(e) => setModel(e.target.value)}
               >
                 <MenuItem value={"llama3.1:latest"}>Llama 3.1 (Local)</MenuItem>
-                <MenuItem value={"phi3:latest"}>phi3:latest</MenuItem>
-                <MenuItem value={"gpt-3.5-turbo"}>gpt-3.5-turbo</MenuItem>
-                <MenuItem value={"gpt-4"}>gpt-4</MenuItem>
+                <MenuItem value={"meta-llama/llama-3.1-8b-instruct:free"}>
+                  llama-3.1 8b instruct (OpenRouter.ai)
+                </MenuItem>
                 <MenuItem value={"microsoft/phi-3-medium-128k-instruct:free"}>
-                  Phi-3 Medium 128K Instruct
+                  Phi-3 Medium 128K Instruct (OpenRouter.ai)
                 </MenuItem>
               </Select>
             </FormControl>
