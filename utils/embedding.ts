@@ -1,31 +1,24 @@
-// ../utils/embedding.ts
+// ../../utils/embedding.ts
 
-import * as tf from "@tensorflow/tfjs-node";
-import { AutoTokenizer, AutoModel } from "transformers";
+import { TokenizerService } from "./tokenizer";
 
-let tokenizer: any;
-let model: any;
+const tokenizer = new TokenizerService();
 
-export async function getEmbedding(text: string) {
-  if (!tokenizer || !model) {
-    tokenizer = await AutoTokenizer.fromPretrained(
-      "sentence-transformers/all-MiniLM-L6-v2"
-    );
-    model = await AutoModel.fromPretrained(
-      "sentence-transformers/all-MiniLM-L6-v2"
-    );
-  }
+export async function getEmbedding(text: string): Promise<number[]> {
+  const tokens = tokenizer.tokenize(text);
+  const uniqueTokens = [...new Set(tokens)];
+  const embedding = new Array(uniqueTokens.length).fill(0);
 
-  const inputs = tokenizer(text, {
-    return_tensors: "tf",
-    truncation: true,
-    max_length: 512,
+  tokens.forEach((token) => {
+    const index = uniqueTokens.indexOf(token);
+    if (index !== -1) {
+      embedding[index]++;
+    }
   });
-  const outputs = model(inputs);
 
-  // Use TensorFlow.js methods correctly
-  const meanEmbedding = tf.mean(outputs.last_hidden_state, 1); // Axis is specified as a number, not a named argument
-  const squeezedEmbedding = tf.squeeze(meanEmbedding).arraySync();
-
-  return squeezedEmbedding;
+  // Normalize the embedding
+  const magnitude = Math.sqrt(
+    embedding.reduce((sum, val) => sum + val * val, 0)
+  );
+  return embedding.map((val) => val / magnitude);
 }

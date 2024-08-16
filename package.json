@@ -21,6 +21,7 @@
     "multer": "^1.4.5-lts.1",
     "next": "14.2.5",
     "pdf-parse": "^1.1.1",
+    "rag-chatbot": "file:",
     "react": "^18",
     "react-dom": "^18",
     "transformers": "^1.8.3"

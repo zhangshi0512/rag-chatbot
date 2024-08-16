@@ -1,4 +1,4 @@
-// ../pages/api/upload.ts
+// ../../pages/api/upload.ts
 
 import { NextApiRequest, NextApiResponse } from "next";
 import multer from "multer";
