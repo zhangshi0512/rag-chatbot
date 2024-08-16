@@ -1,3 +1,5 @@
+// ../components/InputBox.tsx
+
 import React, { useState } from "react";
 import { TextField, Box, Button } from "@mui/material";
 

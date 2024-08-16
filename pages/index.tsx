@@ -23,24 +23,49 @@ export default function Home() {
   const [useExternal, setUseExternal] = useState(false);
   const [apiEndpoint, setApiEndpoint] = useState("");
   const [apiKey, setApiKey] = useState("");
-  const [model, setModel] = useState("phi3:latest");
+  const [model, setModel] = useState("llama3.1:latest");
 
   const handleChatSubmit = async (message: string) => {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: message,
-        useExternal,
-        apiEndpoint,
-        apiKey,
-        model,
-      }),
-    });
-    const data = await response.json();
-    setChatHistory([...chatHistory, { user: message, bot: data.answer }]);
+    // Add user message to chat history immediately
+    setChatHistory((prev) => [...prev, { user: message, bot: "..." }]);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: message,
+          useExternal,
+          apiEndpoint,
+          apiKey,
+          model,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Update the last entry in chat history with the bot's response
+      setChatHistory((prev) => [
+        ...prev.slice(0, -1),
+        {
+          user: message,
+          bot: data.answer || "Sorry, I couldn't generate a response.",
+        },
+      ]);
+    } catch (error) {
+      console.error("Error submitting chat:", error);
+      // Update the last entry in chat history with an error message
+      setChatHistory((prev) => [
+        ...prev.slice(0, -1),
+        { user: message, bot: "Error processing your request." },
+      ]);
+    }
   };
 
   return (
@@ -92,6 +117,7 @@ export default function Home() {
               label="Select AI Model"
               onChange={(e) => setModel(e.target.value)}
             >
+              <MenuItem value={"llama3.1:latest"}>Llama 3.1 (Local)</MenuItem>
               <MenuItem value={"phi3:latest"}>phi3:latest</MenuItem>
               <MenuItem value={"gpt-3.5-turbo"}>gpt-3.5-turbo</MenuItem>
               <MenuItem value={"gpt-4"}>gpt-4</MenuItem>

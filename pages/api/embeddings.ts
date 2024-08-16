@@ -1,3 +1,5 @@
+// ../pages/api/embeddings.ts
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { getEmbedding } from "../../utils/embedding";
 

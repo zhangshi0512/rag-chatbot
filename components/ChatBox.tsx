@@ -1,3 +1,5 @@
+// ../components/ChatBox.tsx
+
 import React, { useState } from "react";
 import { Box, TextField, Button } from "@mui/material";
 

@@ -7,45 +7,41 @@ export default async function handler(
 ) {
   const { query, useExternal, apiEndpoint, apiKey, model } = req.body;
 
-  const apiUrl = useExternal ? apiEndpoint : process.env.OLLAMA_API_URL;
+  const apiUrl = useExternal
+    ? apiEndpoint
+    : (process.env.OLLAMA_API_URL || "").replace(/\/$/, "");
+
+  const localModel = "llama3.1:latest"; // Make sure this matches your local model
+
   const headers = useExternal
     ? {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        ...(model === "microsoft/phi-3-medium-128k-instruct:free" && {
-          "HTTP-Referer": process.env.YOUR_SITE_URL, // Optional
-          "X-Title": process.env.YOUR_SITE_NAME, // Optional
-        }),
       }
-    : {};
-
-  console.log("API URL:", apiUrl);
-  console.log("Headers:", headers);
-  console.log("Request Body:", {
-    model: model,
-    messages: [{ role: "user", content: query }],
-  });
+    : {
+        "Content-Type": "application/json",
+      };
 
   try {
     const response = await axios.post(
-      `${apiUrl}/chat/completions`,
+      `${apiUrl}/api/generate`,
       {
-        model: model,
-        messages: [{ role: "user", content: query }],
+        model: useExternal ? model : localModel,
+        prompt: query,
+        stream: false, // Set to false to get the complete response at once
       },
       { headers }
     );
 
     console.log("API Response:", response.data);
 
-    const botMessage = response.data.choices[0].message.content;
+    // Extract the full response text
+    const botMessage = response.data.response;
     res.status(200).json({ answer: botMessage });
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      console.error("API Error Data:", error.response?.data);
-      res.status(500).json({ error: error.response?.data || error.message });
-    } else {
-      res.status(500).json({ error: "An unknown error occurred." });
-    }
+  } catch (error) {
+    console.error("API Error:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while processing your request." });
   }
 }
