@@ -2,7 +2,7 @@
 
 This project is an AI-powered chatbot that can process uploaded documents and use them to provide context-aware responses. The chatbot can be configured to use either a locally hosted AI model or an external AI API (like OpenRouter.ai) depending on your environment (local development or deployment).
 
-![rag-chatbot-ui](rag-chatbot-ui.png)
+![demo](https://i.imgur.com/DfjM2Mr.gif)
 
 ## Features
 
@@ -10,6 +10,8 @@ This project is an AI-powered chatbot that can process uploaded documents and us
 - **Local AI Model:** Utilizes a locally hosted AI model (like Llama 3.1) when running in a local development environment.
 - **External AI API Integration:** Configurable to use external AI services like OpenRouter.ai when deployed or when preferred.
 - **Dynamic API Endpoint:** Automatically switches between local and external AI services based on the environment.
+
+![rag-chatbot-ui](rag-chatbot-ui.png)
 
 ## Getting Started
 
