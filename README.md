@@ -83,7 +83,9 @@ Enter your queries in the chat box. The bot will generate responses based on the
 
 ### Switching Between Local and External AI
 
-Use the toggle switch to choose between your local AI model and an external AI service. The API endpoint and model can be selected in the input fields when using an external service.
+Use the toggle switch to choose between your local AI model and an external AI service. The local AI model can only be used running this project on localhost. The external AI service can be used either locally or deployed on a remote server.
+
+The API endpoint and model can be selected in the input fields when using an external service.
 
 ## Project Structure
 
